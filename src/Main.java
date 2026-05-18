@@ -1,13 +1,49 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-void main() {
-    //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-    // to see how IntelliJ IDEA suggests fixing it.
-    IO.println(String.format("Hello and welcome!"));
+import panels.GamePanel;
+import panels.mainMenuPanel;
+import javax.swing.*;
+import java.awt.*;
 
-    for (int i = 1; i <= 5; i++) {
-        //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-        // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-        IO.println("i = " + i);
+public class Main {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("The Riddle Dungeon");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(950, 700);
+            frame.setLocationRelativeTo(null);
+
+            JPanel cardPanel = new JPanel(new CardLayout());
+            mainMenuPanel menu = new mainMenuPanel();
+            GamePanel game = new GamePanel();
+
+            // 🔑 CRITICAL FIX: Tell GamePanel how to return to the menu
+            game.setOnReturnToMenu(() -> {
+                CardLayout cl = (CardLayout) cardPanel.getLayout();
+                cl.show(cardPanel, "MENU");
+            });
+
+            cardPanel.add(menu, "MENU");
+            cardPanel.add(game, "GAME");
+            frame.add(cardPanel);
+            frame.setVisible(true);
+
+            CardLayout cl = (CardLayout) cardPanel.getLayout();
+
+            menu.getNewGame().addActionListener(e -> {
+                game.initializeGame();
+                cl.show(cardPanel, "GAME");
+            });
+
+            menu.getLoadGame().addActionListener(e -> {
+                game.initializeGame();
+                cl.show(cardPanel, "GAME");
+            });
+
+            menu.getNewGame().addActionListener(e -> {
+                game.initializeGame(); // Resets player and creates new rooms
+                cl.show(cardPanel, "GAME");
+            });
+
+            menu.getExit().addActionListener(e -> System.exit(0));
+        });
     }
 }
