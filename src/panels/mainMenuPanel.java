@@ -24,7 +24,7 @@ public class mainMenuPanel extends JPanel {
 
     private void loadBackgroundImage() {
         try {
-            File imageFile = new File("src/images/mainmenu.jpg");
+            File imageFile = new File("src/mainmenu.jpg");
             backgroundImg = ImageIO.read(imageFile);
         } catch (IOException e) {
             System.out.println("⚠️ Could not load background image. Ensure file exists.");

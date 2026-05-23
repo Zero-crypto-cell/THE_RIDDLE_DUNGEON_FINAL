@@ -2,22 +2,18 @@ package gamemasters;
 import model.IRiddle;
 import model.RiddleImpl;
 
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
+import java.util.stream.IntStream;
 
 public class Jojan extends GameMaster {
-    private static final List<IRiddle> RIDDLE_POOL = Arrays.asList(
-            new RiddleImpl("I have no voice, but I can tell you everything. I have no ears, but I hear you. What am I?", "echo", "Hint: Shout in a hallway."),
-            new RiddleImpl("The more of me you take, the more you leave behind. What am I?", "footsteps", "Hint: Walking leaves me."),
-            new RiddleImpl("I can be cracked, made, told, and played. What am I?", "joke", "Hint: Makes you laugh."),
-            new RiddleImpl("What has a heart that doesn't beat?", "deck of cards", "Hint: Used for games."),
-            new RiddleImpl("I am not alive, but I grow. I don't have lungs, but I need air. What am I?", "fire", "Hint: Lights the darkness."),
-            new RiddleImpl("What can you break, even if you never pick it up or touch it?", "promise", "Hint: Words can break it."),
-            new RiddleImpl("I have cities, but no houses. I have forests, but no trees. What am I?", "map", "Hint: Shows the way."),
-            new RiddleImpl("What has a ring but no finger?", "phone", "Hint: It rings."),
-            new RiddleImpl("I am full of holes but still holds water. What am I?", "sponge", "Hint: Used for cleaning."),
-            new RiddleImpl("What goes up but never comes down?", "age", "Hint: Time passes.")
-    );
+    private static final List<IRiddle> RIDDLE_POOL = IntStream.rangeClosed(1, 10)
+            .mapToObj(i -> new RiddleImpl(getEnv("JOJAN_RIDDLE_" + i), getEnv("JOJAN_ANSWER_" + i), getEnv("JOJAN_HINT_" + i)))
+            .map(r -> (IRiddle) r)
+            .toList();
 
     public Jojan() {
         super("Jojan", RIDDLE_POOL);
@@ -25,6 +21,9 @@ public class Jojan extends GameMaster {
 
     @Override
     public String greet() {
-        return "Jojan smiles mysteriously. 'A simple question for you.'";
+        return "Jojan speaks in riddles...";
     }
+    @Override
+    public void startGame() {}
 }
+
