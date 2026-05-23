@@ -1,5 +1,8 @@
 package panels;
 
+import model.GameManager;
+import mains.Application;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -15,13 +18,19 @@ public class MapPanel extends JPanel {
     private JButton room5;
     private JButton room6;
 
+    private Application mainApp;
+    private GameManager game;
     private JButton[] roomButtons;
 
-    public MapPanel() {
+    public MapPanel(Application app, GameManager game) {
+        this.mainApp = app;
+        this.game = game;
+
         // Initialize array for easier looping
         roomButtons = new JButton[]{room1, room2, room3, room4, room5, room6};
 
-                if (title == null) {
+        // If the form didn't bind, create a fallback layout
+        if (title == null) {
             setupFallbackUI();
         } else {
             setupFormUI();
@@ -51,6 +60,12 @@ public class MapPanel extends JPanel {
             btnContainer.add(roomButtons[i]);
         }
         add(btnContainer, BorderLayout.CENTER);
+
+        // Back Button
+        JButton backBtn = new JButton("← Back to Game");
+        styleButton(backBtn);
+        backBtn.addActionListener(e -> mainApp.showGame());
+        add(backBtn, BorderLayout.SOUTH);
     }
 
     private void setupFormUI() {
@@ -61,20 +76,36 @@ public class MapPanel extends JPanel {
             title.setHorizontalAlignment(SwingConstants.CENTER);
         }
 
-
+        // Style the buttons from the form
         for (JButton btn : roomButtons) {
             if (btn != null) {
                 btn.setFont(new Font("Serif", Font.BOLD, 16));
                 btn.setFocusPainted(false);
-                btn.setContentAreaFilled(false);
+                btn.setContentAreaFilled(false); // Transparent background
             }
         }
+    }
+
+    private void styleButton(JButton btn) {
+        btn.setFont(new Font("SansSerif", Font.BOLD, 14));
+        btn.setForeground(new Color(212, 175, 55));
+        btn.setBackground(new Color(0, 0, 0, 80));
+        btn.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
+        btn.setFocusPainted(false);
+        btn.setContentAreaFilled(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
     }
 
     /**
      * Call this method to refresh the map based on game progress
      */
-    public void updateMap(boolean[] completed, int currentRoomIndex) {
+    public void refresh() {
+        // Ensure we have the latest game state
+        this.game = GameManager.getInstance();
+
+        boolean[] completed = game.getCompletedRooms();
+        int currentRoomIndex = game.getCurrentRoomIndex();
+
         for (int i = 0; i < 6; i++) {
             JButton btn = roomButtons[i];
             if (btn == null) continue;
@@ -93,7 +124,7 @@ public class MapPanel extends JPanel {
                 btn.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
             } else if (isCurrent) {
                 // CURRENT ROOM
-                btn.setText(" ROOM " + (i + 1));
+                btn.setText("⬤ ROOM " + (i + 1));
                 btn.setForeground(new Color(212, 175, 55)); // Gold Text
                 btn.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
             } else {

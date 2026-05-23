@@ -1,5 +1,7 @@
 package model;
 
+import javax.swing.*;
+
 public class Player {
     private int hearts;
     private int currentRoomIndex;
@@ -29,10 +31,6 @@ public class Player {
         return hearts > 0;
     }
 
-    public void nextRoom() {
-        this.currentRoomIndex++;
-    }
-
     public int getCurrentRoomIndex() {
         return currentRoomIndex;
     }
@@ -47,5 +45,15 @@ public class Player {
 
     public void setHearts(int hearts) {
         this.hearts = hearts;
+    }
+
+    public void nextRoom() {
+        if (this.hearts == 1) {
+            JOptionPane.showMessageDialog(null,
+                    "⚠️ WARNING: You are down to your last heart! One more mistake and you die.",
+                    "Low Health Warning",
+                    JOptionPane.WARNING_MESSAGE);
+        }
+        this.currentRoomIndex++;
     }
 }

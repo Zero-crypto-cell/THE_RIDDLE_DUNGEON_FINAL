@@ -6,6 +6,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import mains.Application;
+import model.GameManager;
 
 public class mainMenuPanel extends JPanel {
 
@@ -14,8 +16,12 @@ public class mainMenuPanel extends JPanel {
     private JButton newGame;
     private JButton loadGame;
     private JButton Exit;
+    private Application mainApp;
+    private GameManager game;
 
-    public mainMenuPanel() {
+    public mainMenuPanel(Application app, GameManager game) {
+        this.mainApp = app;
+        this.game = game;
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(900, 650));
         loadBackgroundImage();
@@ -27,7 +33,9 @@ public class mainMenuPanel extends JPanel {
             File imageFile = new File("src/mainmenu.jpg");
             backgroundImg = ImageIO.read(imageFile);
         } catch (IOException e) {
-            System.out.println("⚠️ Could not load background image. Ensure file exists.");
+            JOptionPane.showMessageDialog(null,
+                    "Could not load background image. Please ensure 'src/mainmenu.jpg' exists.",
+                    "Image Load Error", JOptionPane.WARNING_MESSAGE);
             backgroundImg = null;
         }
     }
@@ -35,32 +43,35 @@ public class mainMenuPanel extends JPanel {
     private void setupUI() {
         setOpaque(false);
 
-        // Style the title
         if (title != null) {
             title.setText("THE RIDDLE DUNGEON");
             title.setFont(new Font("Serif", Font.BOLD, 36));
-            title.setForeground(new Color(212, 175, 55)); // Gold
+            title.setForeground(new Color(212, 175, 55));
             title.setHorizontalAlignment(SwingConstants.CENTER);
         }
 
-        // Button panel with GridLayout
         JPanel buttonPanel = new JPanel(new GridLayout(3, 1, 10, 10));
         buttonPanel.setOpaque(false);
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(50, 300, 50, 300));
 
-        // Style New Game button
         if (newGame != null) {
             styleButton(newGame);
+            newGame.addActionListener(e -> mainApp.showGame());
             buttonPanel.add(newGame);
         }
 
-        // Style Load Game button
         if (loadGame != null) {
             styleButton(loadGame);
+            loadGame.addActionListener(e -> {
+                if (util.FileManager.loadGame() != null) {
+                    mainApp.showGame();
+                } else {
+                    JOptionPane.showMessageDialog(this, "No save file found.");
+                }
+            });
             buttonPanel.add(loadGame);
         }
 
-        // Style Exit button
         if (Exit != null) {
             styleButton(Exit);
             Exit.addActionListener(e -> System.exit(0));
@@ -73,8 +84,8 @@ public class mainMenuPanel extends JPanel {
 
     private void styleButton(JButton button) {
         button.setFont(new Font("Serif", Font.BOLD, 18));
-        button.setForeground(new Color(212, 175, 55)); // Gold text
-        button.setBackground(new Color(0, 0, 0, 100));  // Semi-transparent black
+        button.setForeground(new Color(212, 175, 55));
+        button.setBackground(new Color(0, 0, 0, 100));
         button.setBorder(BorderFactory.createLineBorder(new Color(212, 175, 55), 2));
         button.setFocusPainted(false);
         button.setContentAreaFilled(false);
@@ -93,6 +104,10 @@ public class mainMenuPanel extends JPanel {
             g2d.setColor(new Color(20, 20, 30));
             g2d.fillRect(0, 0, getWidth(), getHeight());
         }
+    }
+
+    public void refresh() {
+        // Re-apply styles or update dynamic content if needed
     }
 
     public JButton getNewGame() { return newGame; }

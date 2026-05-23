@@ -1,7 +1,7 @@
 package gamemasters;
+
 import model.IRiddle;
 
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
@@ -15,11 +15,14 @@ public abstract class GameMaster {
     private IRiddle currentRiddle;
     private static final Random random = new Random();
 
+    // Static block to load .env once
     protected static final Properties env = new Properties();
     static {
         try(FileReader r = new FileReader(".env")){
             env.load(r);
-        }catch (IOException ignored){}
+        }catch (IOException ignored){
+            // Silently fail if .env is missing
+        }
     }
 
     public GameMaster(String name, List<IRiddle> riddlePool) {
@@ -28,12 +31,18 @@ public abstract class GameMaster {
         selectRandomRiddle();
     }
 
-    protected static String getEnv(String key){
+    /**
+     * FIXED: Robustly cleans quotes and whitespace from .env values
+     */
+    public static String getEnv(String key){
         String value = env.getProperty(key);
         if(value != null){
             value = value.trim();
-            if(value.startsWith("\"") && value.endsWith("\""));
-            return value;
+            // Remove surrounding double quotes if they exist
+            if(value.startsWith("\"") && value.endsWith("\"")){
+                value = value.substring(1, value.length() - 1);
+            }
+            return value.trim(); // Final trim to remove any internal padding
         }
         return "";
     }
