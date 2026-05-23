@@ -1,121 +1,56 @@
-// Room.java
 package model;
+
 import gamemasters.GameMaster;
+import javax.swing.JOptionPane;
 
 public class Room {
+    // === Room Identity ===
     private final int roomNumber;
-    private final String difficultyLabel; // "Easy", "Medium", "Hard"
+    private final String difficultyLabel;
     private final GameMaster gameMaster;
 
-    private boolean isLocked;
-    private boolean visited;
-    private boolean solved;
-
-    private int attempts;
-
-//    private String description;
-//    private String reward;
+    // === State ===
+    private boolean isSolved;
 
     public Room(int roomNumber, String difficultyLabel, GameMaster gameMaster) {
         this.roomNumber = roomNumber;
         this.difficultyLabel = difficultyLabel;
         this.gameMaster = gameMaster;
-
-//        this.description = description;
-//        this.reward = reward;
-
-        this.isLocked = true;
-        this.visited = false;
-        this.solved = false;
-        this.attempts = 0;
+        this.isSolved = false;
     }
 
-    // Check player's answer
-    public boolean attemptAnswer(String playerAnswer) {
-
-        if (playerAnswer == null) {
+    // === Check Answer ===
+    public boolean confirmAnswer(String playerAnswer) {
+        if (playerAnswer == null || playerAnswer.trim().isEmpty()) {
             return false;
         }
 
-        attempts++;
+        String input = playerAnswer.trim().toLowerCase();
+        String correct = gameMaster.getRiddle().getAnswer().trim().toLowerCase();
 
-        String playerInput = playerAnswer.trim().toLowerCase();
-        String correctAnswer = gameMaster.getRiddle()
-                .getAnswer()
-                .trim()
-                .toLowerCase();
-
-        if (playerInput.equals(correctAnswer)) {
-            solved = true;
-            unlock();
+        if (input.equals(correct)) {
+            this.isSolved = true;
             return true;
         }
-
         return false;
     }
 
-    // Unlock room
-    public void unlock() {
-        this.isLocked = false;
+    // === Show Key Reward Popup ===
+    public void awardKeyReward() {
+        // Call this ONLY after checkAnswer() returns true
+        JOptionPane.showMessageDialog(
+                null,
+                "🗝️ Congratulations!\n\nYou obtained a Key!",
+                "Chest Opened!",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
-    // Mark room as visited
-    public void visit() {
-        this.visited = true;
-    }
-
-    // Show hint after several failed attempts
-    public boolean canShowHint() {
-        return attempts >= 3;
-    }
-
-    // Getters
-    public boolean isLocked() {
-        return isLocked;
-    }
-
-    public boolean isVisited() {
-        return visited;
-    }
-
-    public boolean isSolved() {
-        return solved;
-    }
-
-    public int getAttempts() {
-        return attempts;
-    }
-
-    public int getRoomNumber() {
-        return roomNumber;
-    }
-
-    public String getDifficultyLabel() {
-        return difficultyLabel;
-    }
-
-//    public String getDescription() {
-//        return description;
-//    }
-//
-//    public String getReward() {
-//        return reward;
-//    }
-
-    public String getMasterName() {
-        return gameMaster.getName();
-    }
-
-    public String getGreeting() {
-        return gameMaster.greet();
-    }
-
-    public String getRiddleQuestion() {
-        return gameMaster.getRiddle().getQuestion();
-    }
-
-    public String getRiddleHint() {
-        return gameMaster.getRiddle().getHint();
-    }
-
+    // === Getters ===
+    public boolean isSolved() { return isSolved; }
+    public int getRoomNumber() { return roomNumber; }
+    public String getDifficultyLabel() { return difficultyLabel; }
+    public String getGreeting() { return gameMaster.greet(); }
+    public String getRiddleQuestion() { return gameMaster.getRiddle().getQuestion(); }
+    public String getRiddleHint() { return gameMaster.getRiddle().getHint(); }
 }

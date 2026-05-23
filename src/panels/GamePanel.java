@@ -121,7 +121,7 @@ public class GamePanel extends JPanel {
         Room current = rooms[player.getCurrentRoomIndex()];
         String ans = txtInput.getText();
 
-        if (current.attemptAnswer(ans)) {
+        if (current.confirmAnswer(ans)) {
             completedRooms[player.getCurrentRoomIndex()] = true;
             if (lblHint != null) { lblHint.setText("✅ CORRECT! The door unlocks..."); lblHint.setForeground(Color.GREEN); }
             txtInput.setEnabled(false); SOLVEButton.setEnabled(false);
