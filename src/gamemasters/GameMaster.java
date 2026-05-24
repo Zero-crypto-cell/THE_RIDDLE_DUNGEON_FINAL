@@ -27,7 +27,13 @@ public abstract class GameMaster {
 
     public GameMaster(String name, List<IRiddle> riddlePool) {
         this.name = name;
-        this.riddlePool = new ArrayList<>(riddlePool);
+        this.riddlePool = new ArrayList<>();
+        for (IRiddle riddle : riddlePool) {
+            if (riddle.getQuestion() != null && !riddle.getQuestion().trim().isEmpty()
+                    && riddle.getAnswer() != null && !riddle.getAnswer().trim().isEmpty()) {
+                this.riddlePool.add(riddle);
+            }
+        }
         selectRandomRiddle();
     }
 

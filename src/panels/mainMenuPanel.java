@@ -16,16 +16,21 @@ public class mainMenuPanel extends JPanel {
     private JButton newGame;
     private JButton loadGame;
     private JButton Exit;
-    private Application mainApp;
     private GameManager game;
+    private Application app;
 
     public mainMenuPanel(Application app, GameManager game) {
-        this.mainApp = app;
+        this.app = app;
         this.game = game;
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(900, 650));
         loadBackgroundImage();
         setupUI();
+    }
+
+    //updateGameInstance method
+    public void updateGameInstance(GameManager game){
+        this.game = game;
     }
 
     private void loadBackgroundImage() {
@@ -42,6 +47,20 @@ public class mainMenuPanel extends JPanel {
 
     private void setupUI() {
         setOpaque(false);
+        removeAll();
+
+        if (title == null) {
+            title = new JLabel("THE RIDDLE DUNGEON");
+        }
+        if (newGame == null) {
+            newGame = new JButton("New Game");
+        }
+        if (loadGame == null) {
+            loadGame = new JButton("Load Game");
+        }
+        if (Exit == null) {
+            Exit = new JButton("Exit");
+        }
 
         if (title != null) {
             title.setText("THE RIDDLE DUNGEON");
@@ -56,18 +75,26 @@ public class mainMenuPanel extends JPanel {
 
         if (newGame != null) {
             styleButton(newGame);
-            newGame.addActionListener(e -> mainApp.showGame());
+            newGame.addActionListener(e ->{
+                if(game != null){
+                    game.resetGame();
+                    app.setGame(game);
+                }
+                app.showGame();
+            });
             buttonPanel.add(newGame);
         }
-
-        if (loadGame != null) {
+        if(loadGame != null) {
             styleButton(loadGame);
-            loadGame.addActionListener(e -> {
-                if (util.FileManager.loadGame() != null) {
-                    mainApp.showGame();
-                } else {
-                    JOptionPane.showMessageDialog(this, "No save file found.");
-                }
+            loadGame.addActionListener(e ->{
+               GameManager loadedProgress = GameManager.loadProgress();
+               if(loadedProgress != null){
+                   this.game = loadedProgress;
+                   app.setGame(loadedProgress);
+                   app.showGame();
+               } else {
+                   JOptionPane.showMessageDialog(this, "No save file Found.");
+               }
             });
             buttonPanel.add(loadGame);
         }
@@ -108,6 +135,8 @@ public class mainMenuPanel extends JPanel {
 
     public void refresh() {
         // Re-apply styles or update dynamic content if needed
+        revalidate();
+        repaint();
     }
 
     public JButton getNewGame() { return newGame; }

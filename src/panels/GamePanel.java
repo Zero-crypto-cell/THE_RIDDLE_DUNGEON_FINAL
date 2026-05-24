@@ -1,5 +1,7 @@
 package panels;
 
+import mains.Application;
+import model.GameManager;
 import model.Player;
 import model.Room;
 import gamemasters.Awit;
@@ -26,7 +28,10 @@ public class GamePanel extends JPanel {
     private JTextField txtInput;
     private JTextArea lblHint;
     private JButton Map;
+    private JButton btnSave;
 
+    private Application application;
+    private GameManager game;
     private Player player;
     private Room[] rooms;
     private boolean[] completedRooms;
@@ -35,8 +40,18 @@ public class GamePanel extends JPanel {
     // Navigation callback to return to menu
     private Runnable onReturnToMenu;
 
-    public GamePanel() {
+    public GamePanel(Application application, GameManager game) {
+        this.application = application;
+        this.game = game;
         initializeGame();
+    }
+
+    public void updateGameInstance(GameManager game) {
+        if (game != null) {
+            this.game = game;
+            this.player = game.getPlayer();
+        }
+        loadLevel();
     }
 
     // Setter for navigation callback
@@ -49,7 +64,9 @@ public class GamePanel extends JPanel {
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(900, 650));
 
-        if (gamePanel != null) {
+        if (gamePanel == null) {
+            setupFallbackUI();
+        } else {
             gamePanel.setBackground(new Color(255, 167, 30));
             add(gamePanel, BorderLayout.CENTER);
         }
@@ -64,13 +81,97 @@ public class GamePanel extends JPanel {
         repaint();
     }
 
+    private void setupFallbackUI() {
+        gamePanel = new JPanel(new BorderLayout(15, 15));
+        gamePanel.setBackground(new Color(255, 167, 30));
+        gamePanel.setBorder(BorderFactory.createEmptyBorder(24, 36, 24, 36));
+
+        title = new JLabel("PUZZLE TIME", SwingConstants.CENTER);
+        title.setFont(new Font("Serif", Font.BOLD, 34));
+        title.setForeground(new Color(43, 45, 48));
+        gamePanel.add(title, BorderLayout.NORTH);
+
+        JPanel centerPanel = new JPanel(new BorderLayout(12, 12));
+        centerPanel.setOpaque(false);
+
+        JPanel statusPanel = new JPanel(new BorderLayout());
+        statusPanel.setOpaque(false);
+        lblHearts = new JLabel();
+        lblHearts.setFont(new Font("SansSerif", Font.BOLD, 20));
+        lblRoomInfo = new JLabel("", SwingConstants.RIGHT);
+        lblRoomInfo.setFont(new Font("SansSerif", Font.BOLD, 16));
+        statusPanel.add(lblHearts, BorderLayout.WEST);
+        statusPanel.add(lblRoomInfo, BorderLayout.EAST);
+        centerPanel.add(statusPanel, BorderLayout.NORTH);
+
+        txtRiddle = new JTextArea();
+        txtRiddle.setEditable(false);
+        txtRiddle.setLineWrap(true);
+        txtRiddle.setWrapStyleWord(true);
+        txtRiddle.setFont(new Font("Serif", Font.PLAIN, 20));
+        txtRiddle.setForeground(Color.WHITE);
+        txtRiddle.setBackground(new Color(43, 45, 48));
+        txtRiddle.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        centerPanel.add(new JScrollPane(txtRiddle), BorderLayout.CENTER);
+
+        lblHint = new JTextArea();
+        lblHint.setEditable(false);
+        lblHint.setLineWrap(true);
+        lblHint.setWrapStyleWord(true);
+        lblHint.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        lblHint.setForeground(Color.ORANGE);
+        lblHint.setBackground(new Color(43, 45, 48));
+        lblHint.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        lblHint.setPreferredSize(new Dimension(200, 90));
+        centerPanel.add(lblHint, BorderLayout.SOUTH);
+
+        gamePanel.add(centerPanel, BorderLayout.CENTER);
+
+        JPanel bottomPanel = new JPanel(new BorderLayout(12, 0));
+        bottomPanel.setOpaque(false);
+        answer = new JLabel("Answer:");
+        answer.setFont(new Font("SansSerif", Font.BOLD, 16));
+        txtInput = new JTextField();
+        txtInput.setFont(new Font("SansSerif", Font.PLAIN, 16));
+        SOLVEButton = new JButton("SOLVE");
+        Map = new JButton("MAP");
+        btnSave = new JButton("Save");
+
+        JPanel inputPanel = new JPanel(new BorderLayout(8, 0));
+        inputPanel.setOpaque(false);
+        inputPanel.add(answer, BorderLayout.WEST);
+        inputPanel.add(txtInput, BorderLayout.CENTER);
+        inputPanel.add(SOLVEButton, BorderLayout.EAST);
+
+        JPanel actionPanel = new JPanel(new GridLayout(1, 2, 8, 0));
+        actionPanel.setOpaque(false);
+        actionPanel.add(Map);
+        actionPanel.add(btnSave);
+
+        bottomPanel.add(inputPanel, BorderLayout.CENTER);
+        bottomPanel.add(actionPanel, BorderLayout.EAST);
+        gamePanel.add(bottomPanel, BorderLayout.SOUTH);
+
+        add(gamePanel, BorderLayout.CENTER);
+    }
+
     private void setupListeners() {
         if (SOLVEButton != null) SOLVEButton.addActionListener(e -> checkAnswer());
         if (txtInput != null) txtInput.addActionListener(e -> checkAnswer());
         if (Map != null) Map.addActionListener(e -> {
-            int completed = countCompletedRooms();
-            JOptionPane.showMessageDialog(this, "️ Dungeon Map\nRooms completed: " + completed + "/6");
+            if (application != null) {
+                application.showMap();
+            }
         });
+        if (btnSave != null) {
+            btnSave.setText("Save");
+            btnSave.addActionListener(e -> {
+                if (game != null) {
+                    game.saveProgress();
+                    JOptionPane.showMessageDialog(this, "Game saved.");
+                }
+            });
+        }
 
     }
 
@@ -114,38 +215,69 @@ public class GamePanel extends JPanel {
         revalidate(); repaint();
     }
 
+    //changed by patrick
     private void checkAnswer() {
-        if (isProcessingAnswer || player.hasWon() || !player.isAlive()) return;
+        if (isProcessingAnswer || player == null || player.hasWon() || !player.isAlive()) return;
         isProcessingAnswer = true;
 
+        // 2. Lock inputs immediately so the user can't spam input during timers
+        if (txtInput != null) txtInput.setEnabled(false);
+        if (SOLVEButton != null) SOLVEButton.setEnabled(false);
+
         Room current = rooms[player.getCurrentRoomIndex()];
-        String ans = txtInput.getText();
+        String ans = txtInput.getText() != null ? txtInput.getText().trim() : "";
 
         if (current.attemptAnswer(ans)) {
             completedRooms[player.getCurrentRoomIndex()] = true;
-            if (lblHint != null) { lblHint.setText("✅ CORRECT! The door unlocks..."); lblHint.setForeground(Color.GREEN); }
-            txtInput.setEnabled(false); SOLVEButton.setEnabled(false);
-            Timer t = new Timer(1500, e -> { player.nextRoom(); txtInput.setEnabled(true); SOLVEButton.setEnabled(true); loadLevel(); });
-            t.setRepeats(false); t.start();
+            if (game != null) {
+                game.completeRoom(player.getCurrentRoomIndex());
+            }
+            if (lblHint != null) {
+                lblHint.setText("✅ CORRECT! The door unlocks...");
+                lblHint.setForeground(Color.GREEN);
+            }
+            Timer t = new Timer(1500, e -> {
+                player.nextRoom();
+                if (txtInput != null) txtInput.setEnabled(true);
+                if (SOLVEButton != null) SOLVEButton.setEnabled(true);
+                loadLevel();
+            });
+            t.setRepeats(false);
+            t.start();
         } else {
             player.loseHeart();
-            if (lblHint != null) { lblHint.setText("❌ WRONG! You lose a heart."); lblHint.setForeground(Color.RED); }
+            if (lblHint != null) {
+                lblHint.setText("❌ WRONG! You lose a heart.");
+                lblHint.setForeground(Color.RED);
+            }
             StringBuilder hearts = new StringBuilder();
             for (int i = 0; i < player.getHearts(); i++) hearts.append("❤️");
             if (lblHearts != null) lblHearts.setText(hearts.toString());
-
             if (!player.isAlive()) {
-                Timer t = new Timer(1500, e -> loadLevel()); t.setRepeats(false); t.start();
+                Timer t = new Timer(1500, e -> {
+                    isProcessingAnswer = false; // FIX: Allows state machine to reset on respawn/end screen
+                    if (txtInput != null) txtInput.setEnabled(true);
+                    if (SOLVEButton != null) SOLVEButton.setEnabled(true);
+                    loadLevel();
+                });
+                t.setRepeats(false);
+                t.start();
             } else {
                 Timer t = new Timer(1200, e -> {
-                    if (lblHint != null) { lblHint.setForeground(Color.ORANGE); lblHint.setText(current.getRiddleHint()); }
+                    if (lblHint != null) {
+                        lblHint.setForeground(Color.ORANGE);
+                        lblHint.setText(current.getRiddleHint());
+                    }
+                    // Re-enable inputs now that penalty timer is done
+                    if (txtInput != null) txtInput.setEnabled(true);
+                    if (SOLVEButton != null) SOLVEButton.setEnabled(true);
                     isProcessingAnswer = false;
                 });
-                t.setRepeats(false); t.start();
+                t.setRepeats(false);
+                t.start();
             }
         }
     }
-
     // Fixed: Uses JDialog instead of removeAll() to preserve form bindings
     private void showEndScreen(boolean won) {
         // Get the parent window
@@ -193,4 +325,5 @@ public class GamePanel extends JPanel {
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
+
 }

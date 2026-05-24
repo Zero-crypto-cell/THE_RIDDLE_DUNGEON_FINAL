@@ -104,7 +104,7 @@ public class MapPanel extends JPanel {
         this.game = GameManager.getInstance();
 
         boolean[] completed = game.getCompletedRooms();
-        int currentRoomIndex = game.getCurrentRoomIndex();
+        int currentRoomIndex = game.getPlayer().getCurrentRoomIndex();
 
         for (int i = 0; i < 6; i++) {
             JButton btn = roomButtons[i];

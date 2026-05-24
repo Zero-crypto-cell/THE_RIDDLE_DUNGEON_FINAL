@@ -33,9 +33,11 @@ public class Application extends JFrame {
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        mainMenuPanel = new mainMenuPanel(this, game);
-        gamePanel = new GamePanel(this, game);
-        mapPanel = new MapPanel(this, game);
+        //initialize panels with the current instance
+        mainMenuPanel = new mainMenuPanel(this,game);
+        gamePanel = new GamePanel(this,game);
+        mapPanel = new MapPanel(this,game);
+        gamePanel.setOnReturnToMenu(this::showMainMenu);
 
         mainPanel.add(mainMenuPanel, "MENU");
         mainPanel.add(gamePanel, "GAME");
@@ -56,15 +58,23 @@ public class Application extends JFrame {
             game.resetGame();
         }
 
+        mainMenuPanel.updateGameInstance(game);
         cardLayout.show(mainPanel, "MENU");
         mainMenuPanel.refresh();
     }
 
     public void showGame() {
-        game = GameManager.getInstance();
-        cardLayout.show(mainPanel, "GAME");
 
-        if (gamePanel != null) {
+        cardLayout.show(mainPanel, "GAME");
+        if(gamePanel != null){
+            gamePanel.updateGameInstance(game);
+        }
+    }
+
+    public void setGame(GameManager game) {
+        if (game != null) {
+            this.game = game;
+            mainMenuPanel.updateGameInstance(game);
             gamePanel.updateGameInstance(game);
         }
     }

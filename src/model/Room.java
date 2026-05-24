@@ -53,4 +53,8 @@ public class Room {
     public String getGreeting() { return gameMaster.greet(); }
     public String getRiddleQuestion() { return gameMaster.getRiddle().getQuestion(); }
     public String getRiddleHint() { return gameMaster.getRiddle().getHint(); }
+
+    public boolean attemptAnswer(String playerAnswer) {
+        return  this.confirmAnswer(playerAnswer);
+    }
 }

@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 
 public class Deanver extends GameMaster {
     private static final List<IRiddle> RIDDLE_POOL = IntStream.rangeClosed(1, 10)
-            .mapToObj(i -> new RiddleImpl(getEnv("DENVER_RIDDLE_" + i), getEnv("DENVER_ANSWER_" + i), getEnv("DENVER_HINT_" + i)))
+            .mapToObj(i -> new RiddleImpl(getEnv("DEANVER_RIDDLE_" + i), getEnv("DEANVER_ANSWER_" + i), getEnv("DEANVER_HINT_" + i)))
             .map(r -> (IRiddle) r)
             .toList();
 
